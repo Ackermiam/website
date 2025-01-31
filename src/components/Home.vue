@@ -8,18 +8,19 @@
     </div>
 
     <button class="Button">version résumée</button>
+    <button class="ButtonTest" @click="engine.handleHyperspeed()">hypervitesse test</button>
 
     <div class="DescriptionContainer">
       <p class="Description Description--first">
-        web and 3D experience <br />
+        <i>web</i> and <i>3D experience</i> <br />
         creation studio
       </p>
       <p class="Description Description--blue">
-        web and 3D experience <br />
+        <i>web</i> and <i>3D experience</i> <br />
         creation studio
       </p>
       <p class="Description Description--red">
-        web and 3D experience <br />
+        <i>web</i> and <i>3D experience</i> <br />
         creation studio
       </p>
     </div>
@@ -96,6 +97,19 @@ onMounted(() => {
   font-size: 1.3rem;
   cursor: pointer;
 }
+.ButtonTest {
+  position: fixed;
+  top: 120px;
+  right: 50px;
+  background: none;
+  padding: 15px;
+  color: white;
+  font-family: "News";
+  font-style: italic;
+  border: 4px white solid;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
 
 .DescriptionContainer {
   position: fixed;
@@ -108,7 +122,6 @@ onMounted(() => {
   position: absolute;
   margin: 0;
   font-family: "News";
-  font-style: italic;
   font-size: 2.25em;
 }
 
@@ -141,6 +154,14 @@ onMounted(() => {
     font-size: 0.8em;
     padding: 10px;
     top: 35px;
+    right: 30px;
+    border: 2px solid white;
+  }
+
+  .ButtonTest {
+    font-size: 0.8em;
+    padding: 10px;
+    top: 85px;
     right: 30px;
     border: 2px solid white;
   }

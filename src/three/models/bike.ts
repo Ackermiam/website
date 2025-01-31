@@ -8,6 +8,7 @@ export class Bike {
   animation: any;
   mixer: AnimationMixer | null = null;
   engine: Engine;
+  canMove: boolean = true;
 
   constructor(engine: Engine) {
     this.loader = new GLTFLoader();
@@ -20,20 +21,17 @@ export class Bike {
       const delta = this.engine.delta;
       this.mixer.update(delta);
     }
-    this.moveBike();
+    if(this.canMove === true) this.moveBike();
   }
 
   async loadMesh() {
-    const gltf = await this.loader.loadAsync(
-      "/website/models/bike.glb"
-    );
+    const gltf = await this.loader.loadAsync("/website/models/bike.glb");
 
     this.mesh = gltf.scene;
     this.animation = gltf.animations;
     this.mesh.scale.set(0.004, 0.004, 0.004);
     this.mesh.position.set(0, 0, -2);
-    this.mesh.rotation.y = Math.PI / 2
-    //this.mesh.rotation.x -= 0.1
+    this.mesh.rotation.y = Math.PI / 2;
 
     if (this.engine.width < 900) {
       this.mesh.scale.set(0.003, 0.003, 0.003);
@@ -46,11 +44,20 @@ export class Bike {
     }
   }
 
+  moveTransition(start, end, factor) {
+    this.mesh.position.x = (1 - factor) * start.x + factor * end.x;
+    this.mesh.position.y = (1 - factor) * start.y + factor * end.y;
+  }
+
   moveBike() {
     const normalizedX = (this.engine.mousePos.x / this.engine.width) * 2 - 1;
-    const normalizedY = (this.engine.mousePos.y / this.engine.height) * 2 - 1;
-    //console.log(normalizedX)
+    const normalizedY = (this.engine.mousePos.y / this.engine.height) * 1.2 - 1;
 
-    this.mesh.position.set(normalizedX * 1.5, -normalizedY - 1, -2);
+    const newPos = {
+      x: normalizedX * 1.5,
+      y: this.engine.width < 900 ? -normalizedY - 1.3 : -normalizedY - 1.5,
+    };
+
+    this.moveTransition(this.mesh.position, newPos, 0.05);
   }
 }

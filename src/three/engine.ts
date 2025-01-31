@@ -5,22 +5,22 @@ import {
   Clock,
   DirectionalLight,
   Vector3,
-  PCFSoftShadowMap
+  PCFSoftShadowMap,
 } from "three";
 
-import { Bike } from "./models/bike"
-import { Globe } from "./models/globe"
+import { Bike } from "./models/bike";
+import { Globe } from "./models/globe";
 
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { RGBShiftShader } from 'three/addons/shaders/RGBShiftShader.js';
-import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { RGBShiftShader } from "three/addons/shaders/RGBShiftShader.js";
+import { VignetteShader } from "three/addons/shaders/VignetteShader.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
+import { FilmPass } from "three/addons/postprocessing/FilmPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
-import Stats from "stats.js";;
+import Stats from "stats.js";
 import GUI from "lil-gui";
 
 export class Engine {
@@ -46,6 +46,12 @@ export class Engine {
   globe: Globe;
   width: number;
   height: number;
+  fov: {
+    base: number;
+    current: number;
+    accel: number;
+    isAccelerate: boolean;
+  };
 
   constructor(ref: HTMLElement) {
     const width = window.innerWidth;
@@ -56,12 +62,16 @@ export class Engine {
     this.width = width;
     this.height = height;
     this.meshs = [];
-    this.mousePos = { x: 0, y: 0 };
+    this.mousePos = { x: width / 3, y: height / 1.5 };
     this.ref = ref;
     this.scene = new Scene();
-
-    this.camera = new PerspectiveCamera(50, width / height, 0.1, 24);
-    console.log(this.width, width, height)
+    this.fov = {
+      base: 50,
+      current: 50,
+      accel: 140,
+      isAccelerate: false,
+    };
+    this.camera = new PerspectiveCamera(this.fov.base, width / height, 0.1, 24);
     this.camera.position.set(0, 0, 3);
     this.camera.lookAt(0, 0, 0);
     this.clock = new Clock();
@@ -96,16 +106,16 @@ export class Engine {
 
     const filmPass = new FilmPass();
     filmPass.uniforms.intensity.value = 1;
-    this.composer.addPass(filmPass)
+    this.composer.addPass(filmPass);
 
-    const rgbPass = new ShaderPass( RGBShiftShader );
-    rgbPass.uniforms.amount.value = 0.003
-    rgbPass.uniforms.angle.value = 5
-    this.composer.addPass( rgbPass );
+    const rgbPass = new ShaderPass(RGBShiftShader);
+    rgbPass.uniforms.amount.value = 0.003;
+    rgbPass.uniforms.angle.value = 5;
+    this.composer.addPass(rgbPass);
 
-    const vignettePass = new ShaderPass( VignetteShader );
+    const vignettePass = new ShaderPass(VignetteShader);
     vignettePass.uniforms.offset.value = 1.4;
-    this.composer.addPass( vignettePass );
+    this.composer.addPass(vignettePass);
 
     const outputPass = new OutputPass();
     this.composer.addPass(outputPass);
@@ -114,16 +124,16 @@ export class Engine {
     //this.stats.update();
     const globe = new Globe(this);
     const bike = new Bike(this);
-    const loadedBike = async() => {
+    const loadedBike = async () => {
       await bike.loadMesh();
       this.bike = bike;
       this.globe = globe;
-      this.meshs.push(this.bike, this.globe)
-    }
+      this.meshs.push(this.bike, this.globe);
+    };
 
     loadedBike().then(() => {
       this.setup();
-    })
+    });
   }
 
   tick() {
@@ -131,6 +141,7 @@ export class Engine {
     //this.stats.begin();
     this.delta = this.clock.getDelta();
     this.elapsedTime = this.clock.getElapsedTime();
+    this.checkFov();
     this.tickChildren();
     //this.stats.end();
 
@@ -147,7 +158,7 @@ export class Engine {
 
     const directionalLight = new DirectionalLight(0xffffff, 2); // Intensité plus élevée
     directionalLight.position.set(3, 20, 10); // Position : légèrement à droite et au-dessus du modèle
-    directionalLight.target.position.set(-1.4, -1.6, 0); // Oriente la lumière vers le modèle
+    //directionalLight.target.position.set(-1.4, -1.6, 0); // Oriente la lumière vers le modèle
     directionalLight.castShadow = true; // Active les ombres
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;
@@ -155,7 +166,6 @@ export class Engine {
     directionalLight.shadow.camera.far = 10;
     this.scene.add(directionalLight);
     this.scene.add(directionalLight.target);
-    console.log(this.composer.passes)
 
     this.tick();
   }
@@ -176,12 +186,15 @@ export class Engine {
         this.camera.updateProjectionMatrix();
       });
 
-    bike
-      .add(this.bike?.mesh.position, "x", -2, 2, 0.05)
-      .name("Xpos Bike");
-    bike
-      .add(this.bike?.mesh.position, "y", -2, 2, 0.05)
-      .name("Ypos Bike");
+    cameraGUI
+      .add(this.fov, "isAccelerate")
+      .name("activateSpeed")
+      .onChange(() => {
+        this.camera.updateProjectionMatrix();
+      });
+
+    bike.add(this.bike?.mesh.position, "x", -2, 2, 0.05).name("Xpos Bike");
+    bike.add(this.bike?.mesh.position, "y", -2, 2, 0.05).name("Ypos Bike");
 
     /*lightGUI
       .addColor(this.character?.light, "color")
@@ -194,11 +207,21 @@ export class Engine {
       .add(this.environment?.mesh.children[0].material, "wireframe")
       .name("ground wireframe");*/
 
-    shaderPP.add(this.composer.passes[1], "strength", 0.1, 5).name("Bloomstrength");
-    shaderPP.add(this.composer.passes[3].uniforms.amount, "value", 0.001, 1.1).name("RGBstrength");
-    shaderPP.add(this.composer.passes[3].uniforms.angle, "value", 0.1, 5).name("RGBangle");
-    shaderPP.add(this.composer.passes[4].uniforms.darkness, "value", 0.1, 5).name("VignetteDarkness");
-    shaderPP.add(this.composer.passes[4].uniforms.offset, "value", 0.1, 5).name("VignetteOffset");
+    shaderPP
+      .add(this.composer.passes[1], "strength", 0.1, 5)
+      .name("Bloomstrength");
+    shaderPP
+      .add(this.composer.passes[3].uniforms.amount, "value", 0.001, 1.1)
+      .name("RGBstrength");
+    shaderPP
+      .add(this.composer.passes[3].uniforms.angle, "value", 0.1, 5)
+      .name("RGBangle");
+    shaderPP
+      .add(this.composer.passes[4].uniforms.darkness, "value", 0.1, 5)
+      .name("VignetteDarkness");
+    shaderPP
+      .add(this.composer.passes[4].uniforms.offset, "value", 0.1, 5)
+      .name("VignetteOffset");
 
     window.addEventListener("keydown", (e) => {
       if (e.key == "t") gui.show(gui._hidden);
@@ -215,6 +238,36 @@ export class Engine {
     for (let i = 0; i < this.meshs.length; i++) {
       this.meshs[i].tick(this);
     }
+  }
+
+  lerpBloom(start: number, end: number, factor: number) {
+    this.composer.passes[1].strength = (1 - factor) * start + factor * end;
+  }
+
+  lerpFOV(start: number, end: number, factor: number) {
+    //this.fov.current = (1 - factor) * start + factor * end;
+    this.camera.fov = (1 - factor) * start + factor * end;
+    this.camera.updateProjectionMatrix();
+  }
+
+  checkFov() {
+    if (this.fov.isAccelerate) {
+      this.lerpFOV(this.camera.fov, this.fov.accel, 0.03);
+      this.lerpBloom(this.composer.passes[1].strength, 1, 0.02);
+      this.globe.mesh.rotation.x += this.delta;
+      this.camera.position.z = 0;
+      this.composer.passes[3].uniforms.amount.value = 0.008;
+    }
+    if (!this.fov.isAccelerate) {
+      this.lerpFOV(this.camera.fov, this.fov.base, 0.03);
+      this.lerpBloom(this.composer.passes[1].strength, 0.28, 0.02);
+      this.camera.position.z = 2;
+      this.composer.passes[3].uniforms.amount.value = 0.003;
+    }
+  }
+
+  handleHyperspeed() {
+    this.fov.isAccelerate = !this.fov.isAccelerate;
   }
 
   setView() {
@@ -251,7 +304,7 @@ export class Engine {
     });
     window.addEventListener("scroll", () => {
       this.globe.rotateGlobe();
-    })
+    });
     window.addEventListener("touchmove", (e) => {
       this.mousePos.x = e.touches[0].clientX;
       this.mousePos.y = e.touches[0].clientY;
