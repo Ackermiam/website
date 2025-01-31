@@ -10,6 +10,7 @@ import {
 
 import { Bike } from "./models/bike";
 import { Globe } from "./models/globe";
+import { Text } from "./models/text";
 
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { RGBShiftShader } from "three/addons/shaders/RGBShiftShader.js";
@@ -44,6 +45,7 @@ export class Engine {
   composer: any;
   bike: Bike;
   globe: Globe;
+  text: Text;
   width: number;
   height: number;
   fov: {
@@ -68,7 +70,7 @@ export class Engine {
     this.fov = {
       base: 50,
       current: 50,
-      accel: 140,
+      accel: 170,
       isAccelerate: false,
     };
     this.camera = new PerspectiveCamera(this.fov.base, width / height, 0.1, 24);
@@ -124,11 +126,14 @@ export class Engine {
     //this.stats.update();
     const globe = new Globe(this);
     const bike = new Bike(this);
+    const text = new Text(this);
     const loadedBike = async () => {
       await bike.loadMesh();
       this.bike = bike;
       this.globe = globe;
-      this.meshs.push(this.bike, this.globe);
+      this.text = text;
+      this.meshs.push(this.bike, this.globe, this.text);
+      console.log(this.text);
     };
 
     loadedBike().then(() => {
@@ -254,15 +259,21 @@ export class Engine {
     if (this.fov.isAccelerate) {
       this.lerpFOV(this.camera.fov, this.fov.accel, 0.03);
       this.lerpBloom(this.composer.passes[1].strength, 1, 0.02);
-      this.globe.mesh.rotation.x += this.delta;
+      this.globe.mesh.rotation.x += this.delta * 2;
       this.camera.position.z = 0;
       this.composer.passes[3].uniforms.amount.value = 0.008;
+      this.composer.passes[3].uniforms.angle.value = 1.8;
+      setTimeout(() => {
+        this.globe.changeEmissive(0x3b002a)
+      }, 200)
     }
     if (!this.fov.isAccelerate) {
       this.lerpFOV(this.camera.fov, this.fov.base, 0.03);
       this.lerpBloom(this.composer.passes[1].strength, 0.28, 0.02);
+      this.globe.changeEmissive(0x202020)
       this.camera.position.z = 2;
       this.composer.passes[3].uniforms.amount.value = 0.003;
+      this.composer.passes[3].uniforms.angle.value = 5;
     }
   }
 

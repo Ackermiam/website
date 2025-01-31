@@ -59,4 +59,18 @@ export class Globe {
   rotateGlobe() {
     this.mesh.rotation.x += this.engine.delta / 5
   }
+
+  changeEmissive(emissive: number) {
+    const oldMaterial = this.mesh.material;
+    const material = new MeshPhongMaterial({
+      color: oldMaterial.color,
+      map: oldMaterial.map,
+      displacementMap: oldMaterial.displacementMap,
+      displacementScale: oldMaterial.displacementScale,
+      emissive: emissive,
+      specular: oldMaterial.specular
+    });
+
+    this.mesh.material = material
+  }
 }
