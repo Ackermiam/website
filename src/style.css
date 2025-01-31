@@ -30,6 +30,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html, body {
+  touch-action: none;
+}
+
 body {
   margin: 0;
   background: rgb(10, 10, 10);

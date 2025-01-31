@@ -3,7 +3,6 @@ import {
   WebGLRenderer,
   PerspectiveCamera,
   Clock,
-  AmbientLight,
   DirectionalLight,
   Vector3,
   PCFSoftShadowMap
@@ -12,6 +11,9 @@ import {
 import { Bike } from "./models/bike"
 import { Globe } from "./models/globe"
 
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { RGBShiftShader } from 'three/addons/shaders/RGBShiftShader.js';
+import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
@@ -39,22 +41,27 @@ export class Engine {
   delta: number;
   elapsedTime: number;
   sensitivity: number;
-  globalLight: AmbientLight;
   composer: any;
   bike: Bike;
   globe: Globe;
+  width: number;
+  height: number;
 
   constructor(ref: HTMLElement) {
-    const { width, height } = ref.getBoundingClientRect();
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     //this.stats = new Stats();
     //this.stats.showPanel(0);
     //document.body.appendChild(this.stats.dom);
+    this.width = width;
+    this.height = height;
     this.meshs = [];
     this.mousePos = { x: 0, y: 0 };
     this.ref = ref;
     this.scene = new Scene();
 
     this.camera = new PerspectiveCamera(50, width / height, 0.1, 24);
+    console.log(this.width, width, height)
     this.camera.position.set(0, 0, 3);
     this.camera.lookAt(0, 0, 0);
     this.clock = new Clock();
@@ -83,14 +90,22 @@ export class Engine {
     this.composer.addPass(renderPass);
 
     const bloomPass = new UnrealBloomPass();
-    bloomPass.strength = 0.23;
-    bloomPass.radius = 0.1;
+    bloomPass.strength = 0.28;
+    bloomPass.radius = 0.4;
     this.composer.addPass(bloomPass);
 
     const filmPass = new FilmPass();
     filmPass.uniforms.intensity.value = 1;
     this.composer.addPass(filmPass)
-    console.log(filmPass)
+
+    const rgbPass = new ShaderPass( RGBShiftShader );
+    rgbPass.uniforms.amount.value = 0.003
+    rgbPass.uniforms.angle.value = 5
+    this.composer.addPass( rgbPass );
+
+    const vignettePass = new ShaderPass( VignetteShader );
+    vignettePass.uniforms.offset.value = 1.4;
+    this.composer.addPass( vignettePass );
 
     const outputPass = new OutputPass();
     this.composer.addPass(outputPass);
@@ -140,6 +155,7 @@ export class Engine {
     directionalLight.shadow.camera.far = 10;
     this.scene.add(directionalLight);
     this.scene.add(directionalLight.target);
+    console.log(this.composer.passes)
 
     this.tick();
   }
@@ -149,7 +165,8 @@ export class Engine {
     const sceneGUI = gui.addFolder("Environment");
     const shaderPP = gui.addFolder("ShaderPP");
     const cameraGUI = gui.addFolder("Camera");
-    const lightGUI = gui.addFolder("Light");
+    const bike = gui.addFolder("Bike");
+    const light = gui.addFolder("Light");
     gui.hide();
 
     cameraGUI
@@ -159,11 +176,14 @@ export class Engine {
         this.camera.updateProjectionMatrix();
       });
 
-    /*lightGUI
-      .add(this.character?.light, "distance", 0.1, 7, 0.05)
-      .name("distance light");
+    bike
+      .add(this.bike?.mesh.position, "x", -2, 2, 0.05)
+      .name("Xpos Bike");
+    bike
+      .add(this.bike?.mesh.position, "y", -2, 2, 0.05)
+      .name("Ypos Bike");
 
-    lightGUI
+    /*lightGUI
       .addColor(this.character?.light, "color")
       .name("color light")
       .onChange((e) => {
@@ -174,7 +194,11 @@ export class Engine {
       .add(this.environment?.mesh.children[0].material, "wireframe")
       .name("ground wireframe");*/
 
-    shaderPP.add(this.composer.passes[1], "strength", 0.1, 5).name("strength");
+    shaderPP.add(this.composer.passes[1], "strength", 0.1, 5).name("Bloomstrength");
+    shaderPP.add(this.composer.passes[3].uniforms.amount, "value", 0.001, 1.1).name("RGBstrength");
+    shaderPP.add(this.composer.passes[3].uniforms.angle, "value", 0.1, 5).name("RGBangle");
+    shaderPP.add(this.composer.passes[4].uniforms.darkness, "value", 0.1, 5).name("VignetteDarkness");
+    shaderPP.add(this.composer.passes[4].uniforms.offset, "value", 0.1, 5).name("VignetteOffset");
 
     window.addEventListener("keydown", (e) => {
       if (e.key == "t") gui.show(gui._hidden);
@@ -228,5 +252,9 @@ export class Engine {
     window.addEventListener("scroll", () => {
       this.globe.rotateGlobe();
     })
+    window.addEventListener("touchmove", (e) => {
+      this.mousePos.x = e.touches[0].clientX;
+      this.mousePos.y = e.touches[0].clientY;
+    });
   }
 }

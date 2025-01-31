@@ -8,8 +8,4 @@ import Home from "./components/Home.vue";
   </div>
 </template>
 
-<style scoped>
-.App {
-  height: 500vh;
-}
-</style>
+<style scoped></style>

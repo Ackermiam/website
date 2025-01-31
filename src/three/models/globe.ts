@@ -34,7 +34,7 @@ export class Globe {
     this.displacementTexture = this.textureLoader.load(displacementtexture);
     this.texture.wrapT = RepeatWrapping;
     this.texture.wrapS = RepeatWrapping;
-    this.texture.repeat = new Vector2(45, 45);
+    this.texture.repeat = new Vector2(25, 25);
 
     const geometry = new SphereGeometry(18, 50, 30);
     const material = new MeshPhongMaterial({
@@ -53,7 +53,7 @@ export class Globe {
   }
 
   tick() {
-    //this.rotateGlobe()
+    this.rotateGlobe()
   }
 
   rotateGlobe() {
