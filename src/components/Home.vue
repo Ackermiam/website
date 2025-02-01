@@ -2,15 +2,17 @@
   <section class="Home">
     <div ref="div" class="Scene"></div>
     <div class="TitleContainer">
-      <h1 class="Title Title--first">Acker'<br />Prod</h1>
-      <p class="Title Title--blue">Acker'<br />Prod</p>
-      <p class="Title Title--red">Acker'<br />Prod</p>
+      <h1 class="Title Title--first">Acker'<br />Prod.</h1>
+      <p class="Title Title--blue">Acker'<br />Prod.</p>
+      <p class="Title Title--red">Acker'<br />Prod.</p>
     </div>
 
     <button class="Button">version résumée</button>
     <button class="ButtonTest" @click="engine.handleHyperspeed()">hypervitesse test</button>
+    <button v-if="currentStep < 2" class="ButtonContinue" @click="nextText()">Continue</button>
+    <button v-if="currentStep === 2" class="ButtonContinue" @click="console.log('yo')">Continue</button>
 
-    <div class="DescriptionContainer">
+    <div class="DescriptionContainer" style="display: none">
       <p class="Description Description--first">
         <i>web</i> and <i>3D experience</i> <br />
         creation studio
@@ -30,6 +32,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { Engine } from "../three/engine";
+import { useSettings } from "../composable/settings";
+
+const { nextText, currentStep } = useSettings();
 
 let engine;
 const div = ref();
@@ -97,12 +102,29 @@ onMounted(() => {
   font-size: 1.3rem;
   cursor: pointer;
 }
+
 .ButtonTest {
   position: fixed;
   top: 120px;
   right: 50px;
   background: none;
   padding: 15px;
+  color: white;
+  font-family: "News";
+  font-style: italic;
+  border: 4px white solid;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.ButtonContinue {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 20px;
+  background: none;
+  padding: 15px 20px;
+  backdrop-filter: blur(20px);
   color: white;
   font-family: "News";
   font-style: italic;
@@ -163,6 +185,12 @@ onMounted(() => {
     padding: 10px;
     top: 85px;
     right: 30px;
+    border: 2px solid white;
+  }
+
+  .ButtonContinue {
+    font-size: 0.8em;
+    padding: 10px;
     border: 2px solid white;
   }
 

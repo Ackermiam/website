@@ -133,7 +133,6 @@ export class Engine {
       this.globe = globe;
       this.text = text;
       this.meshs.push(this.bike, this.globe, this.text);
-      console.log(this.text);
     };
 
     loadedBike().then(() => {
@@ -264,13 +263,13 @@ export class Engine {
       this.composer.passes[3].uniforms.amount.value = 0.008;
       this.composer.passes[3].uniforms.angle.value = 1.8;
       setTimeout(() => {
-        this.globe.changeEmissive(0x3b002a)
-      }, 200)
+        this.globe.changeEmissive(0x3b002a);
+      }, 200);
     }
     if (!this.fov.isAccelerate) {
       this.lerpFOV(this.camera.fov, this.fov.base, 0.03);
       this.lerpBloom(this.composer.passes[1].strength, 0.28, 0.02);
-      this.globe.changeEmissive(0x202020)
+      this.globe.changeEmissive(0x202020);
       this.camera.position.z = 2;
       this.composer.passes[3].uniforms.amount.value = 0.003;
       this.composer.passes[3].uniforms.angle.value = 5;
@@ -319,6 +318,9 @@ export class Engine {
     window.addEventListener("touchmove", (e) => {
       this.mousePos.x = e.touches[0].clientX;
       this.mousePos.y = e.touches[0].clientY;
+    });
+    window.addEventListener("nextText", () => {
+      this.text.triggerNextStep();
     });
   }
 }
