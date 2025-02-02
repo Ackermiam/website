@@ -1,5 +1,11 @@
 import { ref } from "vue";
 
+// CLASSIC PORTFOLIO
+const isLoading = ref(true);
+const showSummary = ref(false);
+const selectedTopic = ref('pres')
+
+//MANAGE 3D SCENE
 const currentStep = ref(0);
 const steps = [
   { first: "Acker'", second: "Prod." },
@@ -16,9 +22,17 @@ export const useSettings = () => {
     window.dispatchEvent(newTextEvent);
   };
 
+  const handleSummary = () => {
+    showSummary.value = !showSummary.value;
+  }
+
   return {
     steps,
     currentStep,
-    nextText
+    showSummary,
+    selectedTopic,
+    isLoading,
+    nextText,
+    handleSummary
   };
 };

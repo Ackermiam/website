@@ -24,7 +24,7 @@ export class Text {
     near: number;
     far: number;
   };
-  font: any; // Référence à la police
+  font: any;
   textMeshFirst: Mesh;
   textMeshSecond: Mesh;
 
@@ -48,9 +48,13 @@ export class Text {
     const fontLoader = new FontLoader();
     fontLoader.load("/website/fonts/mewafont.json", (font) => {
       this.font = font;
-      // Une fois la police chargée, vous pouvez créer le texte initial
       this.createText();
     });
+  }
+
+  disposeText() {
+    this.textMeshFirst.geometry.dispose();
+    this.textMeshSecond.geometry.dispose();
   }
 
   createText() {
@@ -61,12 +65,11 @@ export class Text {
       matcap: matCapTexture,
     });
 
-    // Création du premier texte
     const geometryFirst = new TextGeometry(
       `${steps[currentStep.value].first}`,
       {
         font: this.font,
-        size: this.engine.width < 900 ? 2.5 : 4,
+        size: this.engine.width < 900 ? 2 : 4,
         depth: 0.2,
         curveSegments: 3,
         bevelEnabled: true,
@@ -81,12 +84,11 @@ export class Text {
     this.textMeshFirst.geometry.center();
     this.textMeshFirst.rotation.x = -Math.PI * 2.1;
 
-    // Création du second texte
     const geometrySecond = new TextGeometry(
       `${steps[currentStep.value].second}`,
       {
         font: this.font,
-        size: this.engine.width < 900 ? 2.5 : 4,
+        size: this.engine.width < 900 ? 2 : 4,
         depth: 0.2,
         curveSegments: 3,
         bevelEnabled: true,
@@ -101,7 +103,6 @@ export class Text {
     this.textMeshSecond.geometry.center();
     this.textMeshSecond.rotation.x = -Math.PI * 2.1;
 
-    // Vous pouvez créer un groupe ou ajouter directement ces Mesh à la scène
     const group = new Group();
     group.add(this.textMeshFirst, this.textMeshSecond);
     group.position.y = -10;
@@ -110,14 +111,11 @@ export class Text {
   }
 
   nextStep() {
-    currentStep.value++;
-
-    // Mettre à jour le premier texte
     const newGeometryFirst = new TextGeometry(
       `${steps[currentStep.value].first}`,
       {
         font: this.font,
-        size: this.engine.width < 900 ? 2.5 : 4,
+        size: this.engine.width < 900 ? 2 : 4,
         depth: 0.2,
         curveSegments: 3,
         bevelEnabled: true,
@@ -127,18 +125,17 @@ export class Text {
         bevelSegments: 5,
       }
     );
-    // Dispose de l'ancienne géométrie
+
     this.textMeshFirst.geometry.dispose();
-    // Affecte la nouvelle géométrie
+
     this.textMeshFirst.geometry = newGeometryFirst;
     this.textMeshFirst.geometry.center();
 
-    // Mettre à jour le second texte
     const newGeometrySecond = new TextGeometry(
       `${steps[currentStep.value].second}`,
       {
         font: this.font,
-        size: this.engine.width < 900 ? 2.5 : 4,
+        size: this.engine.width < 900 ? 2 : 4,
         depth: 0.2,
         curveSegments: 3,
         bevelEnabled: true,
@@ -155,16 +152,18 @@ export class Text {
   }
 
   triggerNextStep() {
+    currentStep.value++;
     this.handleText();
-    setTimeout(() => {
-      this.nextStep();
-    }, 1500);
+    if(currentStep.value < steps.length - 1) {
+      setTimeout(() => {
+        this.nextStep();
+      }, 1000);
+    }
   }
 
   handleText() {
     this.animation.smaller = !this.animation.smaller;
     this.animation.higher = !this.animation.higher;
-    console.log(this.animation)
   }
 
   changeText() {

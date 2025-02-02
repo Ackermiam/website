@@ -40,3 +40,80 @@ body {
   overflow-x: hidden;
   box-sizing: border-box;
 }
+
+/* Largeur de la barre de défilement */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Couleur et border-radius du curseur de la barre de défilement */
+::-webkit-scrollbar-thumb {
+  background-color: rgba(18, 255, 197, 1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes display {
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 0;
+  }
+}
+
+@keyframes hide {
+  0% {
+    left: 0;
+  }
+
+  100% {
+    left: -100%;
+  }
+}
+
+@keyframes animateTitle {
+  0% {
+    top: 40%;
+    left: 50%;
+    font-size: 5em;
+    transform: translateX(-50%);
+  }
+
+  40% {
+    top: 40%;
+    transform: translateX(-50%);
+  }
+
+  80% {
+    top: 40%;
+    left: 50%;
+    font-size: 5em;
+    transform: translateX(-50%);
+  }
+
+  100% {
+    top: 30px;
+    left: 30px;
+    font-size: 2.3em;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes animateLoading {
+  0%{
+    opacity: 1;
+  }
+
+  80%{
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}

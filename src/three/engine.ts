@@ -160,14 +160,8 @@ export class Engine {
     this.setView();
     this.registerEventListeners();
 
-    const directionalLight = new DirectionalLight(0xffffff, 2); // Intensité plus élevée
-    directionalLight.position.set(3, 20, 10); // Position : légèrement à droite et au-dessus du modèle
-    //directionalLight.target.position.set(-1.4, -1.6, 0); // Oriente la lumière vers le modèle
-    directionalLight.castShadow = true; // Active les ombres
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
-    directionalLight.shadow.camera.near = 0.1;
-    directionalLight.shadow.camera.far = 10;
+    const directionalLight = new DirectionalLight(0xffffff, 2);
+    directionalLight.position.set(3, 20, 10);
     this.scene.add(directionalLight);
     this.scene.add(directionalLight.target);
 
