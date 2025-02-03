@@ -4,7 +4,7 @@
 
     <button class="ButtonTest" @click="engine.handleHyperspeed()" style="display: none">hypervitesse test</button>
     <button v-if="currentStep < steps.length - 1" class="ButtonContinue" @click="nextText()">Continue</button>
-    <button v-if="currentStep === steps.length - 1" class="ButtonContinue" @click="console.log('yo')">Continue</button>
+    <button v-if="currentStep === steps.length - 1" class="ButtonContinue" @click="handleDisplayWorlds()">Continue</button>
   </section>
 </template>
 
@@ -13,7 +13,7 @@ import { ref, onMounted } from "vue";
 import { Engine } from "../three/engine";
 import { useSettings } from "../composable/settings";
 
-const { nextText, handleSummary, currentStep, steps, showSummary, isLoading } = useSettings();
+const { nextText, handleSummary, handleDisplayWorlds, currentStep, steps, showSummary, isLoading } = useSettings();
 
 let engine;
 const div = ref();

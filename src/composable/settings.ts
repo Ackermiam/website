@@ -3,7 +3,6 @@ import { ref } from "vue";
 // CLASSIC PORTFOLIO
 const isLoading = ref(true);
 const showSummary = ref(false);
-const selectedTopic = ref('pres')
 
 //MANAGE 3D SCENE
 const currentStep = ref(0);
@@ -24,15 +23,20 @@ export const useSettings = () => {
 
   const handleSummary = () => {
     showSummary.value = !showSummary.value;
+  };
+
+  const handleDisplayWorlds = () => {
+    displayWorlds.value = !displayWorlds.value;
   }
 
   return {
     steps,
     currentStep,
     showSummary,
-    selectedTopic,
     isLoading,
+    displayWorlds,
     nextText,
-    handleSummary
+    handleSummary,
+    handleDisplayWorlds
   };
 };

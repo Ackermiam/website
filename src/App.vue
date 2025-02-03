@@ -14,7 +14,7 @@ setTimeout(() => {
 <template>
   <div class="App">
     <div class="TitleContainer">
-      <p class="Title Title--first">Acker'<br>Prod.</p>
+      <p class="Title Title--first">Acker'<br />Prod.</p>
     </div>
 
     <button v-if="!isLoading" class="Button" @click="handleSummary()">

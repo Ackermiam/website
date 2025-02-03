@@ -1,9 +1,5 @@
 <template>
-  <section
-    class="Loading"
-  >
-
-  </section>
+  <section class="Loading"></section>
 </template>
 
 <script setup lang="ts">
