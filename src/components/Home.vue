@@ -2,9 +2,8 @@
   <section class="Home">
     <div ref="div" class="Scene"></div>
 
-    <button class="ButtonTest" @click="engine.handleHyperspeed()" style="display: none">hypervitesse test</button>
-    <button v-if="currentStep < steps.length - 1" class="ButtonContinue" @click="nextText()">Continue</button>
-    <button v-if="currentStep === steps.length - 1" class="ButtonContinue" @click="handleDisplayWorlds()">Continue</button>
+    <button class="ButtonTest" @click="engine.handleHyperspeed()">hypervitesse test</button>
+    <button class="ButtonContinue" @click="manageSteps()">Continue</button>
   </section>
 </template>
 
@@ -13,7 +12,7 @@ import { ref, onMounted } from "vue";
 import { Engine } from "../three/engine";
 import { useSettings } from "../composable/settings";
 
-const { nextText, handleSummary, handleDisplayWorlds, currentStep, steps, showSummary, isLoading } = useSettings();
+const { manageSteps, nextText, handleSummary, handleDisplayWorlds, currentStep, steps, showSummary, isLoading } = useSettings();
 
 let engine;
 const div = ref();
@@ -40,7 +39,7 @@ onMounted(() => {
 .ButtonTest {
   position: fixed;
   top: 120px;
-  right: 40px;
+  right: 30px;
   background: none;
   padding: 15px;
   color: white;
@@ -72,7 +71,7 @@ onMounted(() => {
     font-size: 0.8em;
     padding: 10px;
     top: 85px;
-    right: 40px;
+    right: 30px;
     border: 2px solid white;
   }
 

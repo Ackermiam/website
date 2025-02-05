@@ -11,7 +11,6 @@ import {
 import { Engine } from "../engine";
 
 import globetexture from "../../assets/textures/moon.png";
-import normaltexture from "../../assets/textures/normalmoon.png";
 import displacementtexture from "../../assets/textures/dispmoon.png";
 
 export class Globe {
@@ -19,7 +18,6 @@ export class Globe {
   engine: Engine;
   textureLoader: TextureLoader;
   texture: Record<string, any>;
-  normalTexture: Record<string, any>;
   displacementTexture: Record<string, any>;
   loadingManager: LoadingManager;
 
@@ -30,7 +28,6 @@ export class Globe {
     this.textureLoader = new TextureLoader(this.loadingManager);
     this.texture = this.textureLoader.load(globetexture);
     this.texture.colorSpace = SRGBColorSpace;
-    this.normalTexture = this.textureLoader.load(normaltexture);
     this.displacementTexture = this.textureLoader.load(displacementtexture);
     this.texture.wrapT = RepeatWrapping;
     this.texture.wrapS = RepeatWrapping;

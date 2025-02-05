@@ -6,11 +6,15 @@ import {
   DirectionalLight,
   Vector3,
   PCFSoftShadowMap,
+  Raycaster
 } from "three";
 
 import { Bike } from "./models/bike";
 import { Globe } from "./models/globe";
 import { Text } from "./models/text";
+import { Planets } from "./models/planets";
+import { LavaPlanet } from "./models/lavaPlanet";
+import { GrassPlanet } from "./models/GrassPlanet";
 
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { RGBShiftShader } from "three/addons/shaders/RGBShiftShader.js";
@@ -21,8 +25,12 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { FilmPass } from "three/addons/postprocessing/FilmPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
+import { useSettings } from "../composable/settings";
+
 import Stats from "stats.js";
 import GUI from "lil-gui";
+
+const { worlds } = useSettings();
 
 export class Engine {
   scene: Scene;
@@ -46,8 +54,12 @@ export class Engine {
   bike: Bike;
   globe: Globe;
   text: Text;
+  planets: Planets;
+  lavaPlanet: LavaPlanet;
+  grassPlanet: GrassPlanet;
   width: number;
   height: number;
+  raycaster: Raycaster;
   fov: {
     base: number;
     current: number;
@@ -73,7 +85,7 @@ export class Engine {
       accel: 170,
       isAccelerate: false,
     };
-    this.camera = new PerspectiveCamera(this.fov.base, width / height, 0.1, 24);
+    this.camera = new PerspectiveCamera(this.fov.base, width / height, 0.1, 60);
     this.camera.position.set(0, 0, 3);
     this.camera.lookAt(0, 0, 0);
     this.clock = new Clock();
@@ -124,15 +136,23 @@ export class Engine {
 
     ref.appendChild(this.renderer.domElement);
     //this.stats.update();
+    const raycaster = new Raycaster();
     const globe = new Globe(this);
     const bike = new Bike(this);
     const text = new Text(this);
+    const planets = new Planets(this);
+    const lavaPlanet = new LavaPlanet(this);
+    const grassPlanet = new GrassPlanet(this);
     const loadedBike = async () => {
       await bike.loadMesh();
       this.bike = bike;
       this.globe = globe;
       this.text = text;
-      this.meshs.push(this.bike, this.globe, this.text);
+      this.planets = planets;
+      this.lavaPlanet = lavaPlanet;
+      this.grassPlanet = grassPlanet
+      this.raycaster = raycaster;
+      this.meshs.push(this.bike, this.globe, this.text, this.planets, this.lavaPlanet, this.grassPlanet);
     };
 
     loadedBike().then(() => {
@@ -282,29 +302,58 @@ export class Engine {
     this.renderer.setPixelRatio(this.pixelRatio);
   }
 
-  /*moveVision(event) {
-    const horizontalMovement = event.movementX;
-    const verticalMovement = event.movementY;
-
-    this.camera.rotation.reorder("YXZ");
-    this.camera.rotation.y -= horizontalMovement * this.sensitivity;
-    this.camera.rotation.x -= verticalMovement * (this.sensitivity / 2);
-    this.camera.rotation.x = Math.min(
-      Math.max(this.camera.rotation.x, -Math.PI * 0.5),
-      Math.PI * 0.5
-    );
-  }
-
-  handleMouseMove = (event: MouseEvent) => {
-    this.moveVision(event);
-  };*/
-
   registerEventListeners() {
     window.onresize = () => {
       this.setView();
     };
     window.addEventListener("mousemove", (e) => {
       this.mousePos = { x: e.clientX, y: e.clientY };
+      const rect = this.renderer.domElement.getBoundingClientRect();
+
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const normalized = {
+        x: (x / rect.width) * 2 - 1,
+        y: -(y / rect.height) * 2 + 1,
+      };
+
+      this.raycaster.setFromCamera(normalized, this.camera);
+
+      const intersectsLava = this.raycaster.intersectObject(this.lavaPlanet.mesh);
+      const intersectsGrass = this.raycaster.intersectObject(this.grassPlanet.mesh);
+      const intersectsPlanet = this.raycaster.intersectObject(this.planets.mesh);
+
+      if (intersectsLava.length > 0) {
+        console.log("lavaPlanet intersects");
+        if (!worlds.lavaPlanet) {
+          this.lavaPlanet.changeEmissive();
+          worlds.lavaPlanet = true;
+        }
+      } else {
+        this.lavaPlanet.withdrawEmissive();
+        worlds.lavaPlanet = false;
+      }
+      if (intersectsGrass.length > 0) {
+        console.log("lavaPlanet intersects");
+        if (!worlds.grassPlanet) {
+          this.grassPlanet.changeEmissive();
+          worlds.grassPlanet = true;
+        }
+      } else {
+        this.grassPlanet.withdrawEmissive();
+        worlds.grassPlanet = false;
+      }
+      if (intersectsPlanet.length > 0) {
+        console.log("lavaPlanet intersects");
+        if (!worlds.planet) {
+          this.planets.changeEmissive();
+          worlds.planet = true;
+        }
+      } else {
+        this.planets.withdrawEmissive();
+        worlds.planet = false;
+      }
     });
     window.addEventListener("scroll", () => {
       this.globe.rotateGlobe();
@@ -315,6 +364,11 @@ export class Engine {
     });
     window.addEventListener("nextText", () => {
       this.text.triggerNextStep();
+    });
+    window.addEventListener("displayPlanets", () => {
+      this.planets.handleStaticState();
+      this.lavaPlanet.handleStaticState();
+      this.grassPlanet.handleStaticState();
     });
   }
 }
