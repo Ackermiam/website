@@ -1,6 +1,7 @@
 import {
   Mesh,
   SphereGeometry,
+  MeshMatcapMaterial,
   MeshPhongMaterial,
   TextureLoader,
   SRGBColorSpace,
@@ -9,9 +10,11 @@ import {
   Vector2,
   Group
 } from "three";
+import { FontLoader } from "three/addons/loaders/FontLoader.js";
+import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { Engine } from "../engine";
 
-import lavatexture from "../../assets/textures/lava/lavatexture.png"
+import lavatexture from "../../assets/textures/lava/lavatexture.jpg"
 import lavaemissive from "../../assets/textures/lava/lavaemissive.png"
 import lavadisp from "../../assets/textures/lava/lavadisp.png"
 
@@ -23,11 +26,13 @@ export class LavaPlanet {
   lavaemissive: Record<string, any>;
   lavadisp: Record<string, any>;
   loadingManager: LoadingManager;
+  font: any;
   pos: {
     static: boolean;
     basicPos: number;
   }
   rotateAnim: boolean;
+  textMesh: Mesh;
 
   constructor(engine: Engine) {
     this.engine = engine;
@@ -48,7 +53,7 @@ export class LavaPlanet {
     this.lavatexture.wrapS = RepeatWrapping;
     this.lavatexture.repeat = new Vector2(2, 2);
 
-    const geometry = new SphereGeometry(2, 15, 15);
+    const geometry = new SphereGeometry(2, 12, 12);
 
     const lavamaterial = new MeshPhongMaterial({
       map: this.lavatexture,
@@ -67,24 +72,62 @@ export class LavaPlanet {
     this.mesh = group;
     this.mesh.position.y = -2
     this.mesh.rotation.y = 3
+    this.loadFont();
+  }
+
+  loadFont() {
+    const fontLoader = new FontLoader();
+    fontLoader.load("/website/fonts/mewafont.json", (font) => {
+      this.font = font;
+      this.createText();
+    });
+  }
+
+  createText() {
+    const matCapTexture = this.textureLoader.load("/website/textures/7.png");
+    matCapTexture.colorSpace = SRGBColorSpace;
+
+    const textMaterial = new MeshMatcapMaterial({
+      matcap: matCapTexture,
+    });
+
+    const geometryFirst = new TextGeometry(
+      `Stack`,
+      {
+        font: this.font,
+        size: .8,
+        depth: 0.2,
+        curveSegments: 3,
+        bevelEnabled: true,
+        bevelThickness: 0.03,
+        bevelSize: 0.02,
+        bevelOffset: 0,
+        bevelSegments: 5,
+      }
+    );
+    this.textMesh = new Mesh(geometryFirst, textMaterial);
+
+    this.textMesh.geometry.center();
+    this.textMesh.position.set(-4, 1.2, -35);
+    this.mesh.add(this.textMesh);
   }
 
   initialRotate() {
-    this.mesh.rotation.y = (1 - 0.01) * this.mesh.rotation.y + 0.01 * this.pos.basicPos;
+    this.mesh.rotation.y = (1 - 0.01) * this.mesh.rotation.y - 0.01 * this.pos.basicPos;
   }
   rotate() {
     const maxRotation = Math.PI * 2;
-    const rotationSpeed = this.engine.delta / 5;
+    const rotationSpeed = this.engine.delta / 5.5;
 
     if (Math.abs(this.mesh.rotation.y) > maxRotation) {
       this.mesh.rotation.y = 0;
     } else {
-      this.mesh.rotation.y += rotationSpeed;
+      this.mesh.rotation.y -= rotationSpeed;
     }
   }
 
   handleStaticState() {
-    this.pos.static = true;
+    this.pos.static = !this.pos.static;
   }
 
   changeEmissive() {
@@ -113,9 +156,9 @@ export class LavaPlanet {
     this.mesh.children[0].material = material
     this.rotateAnim = false;
   }
-  rotateAnime() {
+  /*rotateAnime() {
     this.mesh.children[0].position.y = Math.cos(this.engine.elapsedTime / 20)
-  }
+  }*/
 
   tick() {
     this.mesh.children[0].rotation.y -= this.engine.delta;

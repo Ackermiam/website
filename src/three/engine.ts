@@ -6,7 +6,7 @@ import {
   DirectionalLight,
   Vector3,
   PCFSoftShadowMap,
-  Raycaster
+  Raycaster,
 } from "three";
 
 import { Bike } from "./models/bike";
@@ -14,7 +14,8 @@ import { Globe } from "./models/globe";
 import { Text } from "./models/text";
 import { Planets } from "./models/planets";
 import { LavaPlanet } from "./models/lavaPlanet";
-import { GrassPlanet } from "./models/GrassPlanet";
+import { GrassPlanet } from "./models/grassPlanet";
+import { Cylinder } from "./models/cylinder";
 
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { RGBShiftShader } from "three/addons/shaders/RGBShiftShader.js";
@@ -30,7 +31,7 @@ import { useSettings } from "../composable/settings";
 import Stats from "stats.js";
 import GUI from "lil-gui";
 
-const { worlds } = useSettings();
+const { worlds, displayWorlds, selectedWorld, displayInfos, textToDisplay, handleDisplayWorlds } = useSettings();
 
 export class Engine {
   scene: Scene;
@@ -57,6 +58,7 @@ export class Engine {
   planets: Planets;
   lavaPlanet: LavaPlanet;
   grassPlanet: GrassPlanet;
+  cylinder: Cylinder;
   width: number;
   height: number;
   raycaster: Raycaster;
@@ -66,6 +68,7 @@ export class Engine {
     accel: number;
     isAccelerate: boolean;
   };
+  light: DirectionalLight;
 
   constructor(ref: HTMLElement) {
     const width = window.innerWidth;
@@ -134,10 +137,16 @@ export class Engine {
     const outputPass = new OutputPass();
     this.composer.addPass(outputPass);
 
+    this.light = new DirectionalLight(0xffffff, 2);
+    this.light.position.set(7, 40, 13);
+    this.scene.add(this.light);
+    this.scene.add(this.light.target);
+
     ref.appendChild(this.renderer.domElement);
     //this.stats.update();
     const raycaster = new Raycaster();
     const globe = new Globe(this);
+    const cylinder = new Cylinder(this);
     const bike = new Bike(this);
     const text = new Text(this);
     const planets = new Planets(this);
@@ -146,13 +155,22 @@ export class Engine {
     const loadedBike = async () => {
       await bike.loadMesh();
       this.bike = bike;
+      this.cylinder = cylinder;
       this.globe = globe;
       this.text = text;
       this.planets = planets;
       this.lavaPlanet = lavaPlanet;
-      this.grassPlanet = grassPlanet
+      this.grassPlanet = grassPlanet;
       this.raycaster = raycaster;
-      this.meshs.push(this.bike, this.globe, this.text, this.planets, this.lavaPlanet, this.grassPlanet);
+      this.meshs.push(
+        this.bike,
+        this.cylinder,
+        this.globe,
+        this.text,
+        this.planets,
+        this.lavaPlanet,
+        this.grassPlanet
+      );
     };
 
     loadedBike().then(() => {
@@ -179,12 +197,6 @@ export class Engine {
     this.setupGUI();
     this.setView();
     this.registerEventListeners();
-
-    const directionalLight = new DirectionalLight(0xffffff, 2);
-    directionalLight.position.set(3, 20, 10);
-    this.scene.add(directionalLight);
-    this.scene.add(directionalLight.target);
-
     this.tick();
   }
 
@@ -215,7 +227,7 @@ export class Engine {
     bike.add(this.bike?.mesh.position, "y", -2, 2, 0.05).name("Ypos Bike");
 
     /*lightGUI
-      .addColor(this.character?.light, "color")
+      .addColor(this.light, "color")
       .name("color light")
       .onChange((e) => {
         console.log(e.getHexString());
@@ -224,6 +236,16 @@ export class Engine {
     sceneGUI
       .add(this.environment?.mesh.children[0].material, "wireframe")
       .name("ground wireframe");*/
+
+    light
+      .add(this.light?.position, "x", -6, 50, 0.1)
+      .name("Xpos")
+    light
+      .add(this.light?.position, "y", -6, 50, 0.1)
+      .name("Ypos")
+    light
+      .add(this.light?.position, "z", -6, 50, 0.1)
+      .name("Zpos")
 
     shaderPP
       .add(this.composer.passes[1], "strength", 0.1, 5)
@@ -263,7 +285,6 @@ export class Engine {
   }
 
   lerpFOV(start: number, end: number, factor: number) {
-    //this.fov.current = (1 - factor) * start + factor * end;
     this.camera.fov = (1 - factor) * start + factor * end;
     this.camera.updateProjectionMatrix();
   }
@@ -320,39 +341,69 @@ export class Engine {
 
       this.raycaster.setFromCamera(normalized, this.camera);
 
-      const intersectsLava = this.raycaster.intersectObject(this.lavaPlanet.mesh);
-      const intersectsGrass = this.raycaster.intersectObject(this.grassPlanet.mesh);
-      const intersectsPlanet = this.raycaster.intersectObject(this.planets.mesh);
+      const intersectsLava = this.raycaster.intersectObject(
+        this.lavaPlanet.mesh
+      );
+      const intersectsGrass = this.raycaster.intersectObject(
+        this.grassPlanet.mesh
+      );
+      const intersectsPlanet = this.raycaster.intersectObject(
+        this.planets.mesh
+      );
 
       if (intersectsLava.length > 0) {
-        console.log("lavaPlanet intersects");
         if (!worlds.lavaPlanet) {
           this.lavaPlanet.changeEmissive();
           worlds.lavaPlanet = true;
+          selectedWorld.value = "lava";
         }
       } else {
         this.lavaPlanet.withdrawEmissive();
         worlds.lavaPlanet = false;
       }
       if (intersectsGrass.length > 0) {
-        console.log("lavaPlanet intersects");
         if (!worlds.grassPlanet) {
           this.grassPlanet.changeEmissive();
           worlds.grassPlanet = true;
+          selectedWorld.value = "grass";
         }
       } else {
         this.grassPlanet.withdrawEmissive();
         worlds.grassPlanet = false;
       }
       if (intersectsPlanet.length > 0) {
-        console.log("lavaPlanet intersects");
         if (!worlds.planet) {
           this.planets.changeEmissive();
           worlds.planet = true;
+          selectedWorld.value = "snow";
         }
       } else {
         this.planets.withdrawEmissive();
         worlds.planet = false;
+      }
+    });
+    window.addEventListener("click", () => {
+      if (
+        displayWorlds.value &&
+        (worlds.planet || worlds.lavaPlanet || worlds.grassPlanet)
+      ) {
+        textToDisplay.value = 'Call the Planets'
+        displayInfos.value = false;
+        this.cylinder.pos.isBottom = false;
+        this.cylinder.mesh.visible = false;
+        this.handleHyperspeed();
+
+        setTimeout(() => {
+          this.globe.changeSkin(selectedWorld.value)
+          this.cylinder.changeSkin(selectedWorld.value)
+        }, 1000);
+        handleDisplayWorlds();
+        setTimeout(() => {
+          this.handleHyperspeed();
+          displayInfos.value = true;
+          this.cylinder.pos.isBottom = true;
+          this.cylinder.mesh.visible = true;
+        }, 3000);
       }
     });
     window.addEventListener("scroll", () => {

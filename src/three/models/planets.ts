@@ -2,17 +2,20 @@ import {
   Mesh,
   SphereGeometry,
   MeshPhongMaterial,
+  MeshMatcapMaterial,
   TextureLoader,
   SRGBColorSpace,
   LoadingManager,
   RepeatWrapping,
   Vector2,
-  Group
+  Group,
 } from "three";
 import { Engine } from "../engine";
+import { FontLoader } from "three/addons/loaders/FontLoader.js";
+import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 
-import snowtexture from "../../assets/textures/snow/snowtexture.png"
-import snowdisp from "../../assets/textures/snow/snowdisp.png"
+import snowtexture from "../../assets/textures/snow/snowtexture.png";
+import snowdisp from "../../assets/textures/snow/snowdisp.png";
 
 export class Planets {
   mesh: Mesh;
@@ -21,17 +24,19 @@ export class Planets {
   snowtexture: Record<string, any>;
   snowdisp: Record<string, any>;
   loadingManager: LoadingManager;
+  font: any;
   pos: {
     static: boolean;
     basicPos: number;
-  }
+  };
+  textMesh: Mesh;
 
   constructor(engine: Engine) {
     this.engine = engine;
     this.pos = {
       basicPos: 0,
-      static: false
-    }
+      static: false,
+    };
 
     this.loadingManager = new LoadingManager();
     this.textureLoader = new TextureLoader(this.loadingManager);
@@ -43,29 +48,67 @@ export class Planets {
     this.snowtexture.wrapS = RepeatWrapping;
     this.snowtexture.repeat = new Vector2(2, 2);
 
-    const geometry = new SphereGeometry(2, 15, 15);
+    const geometry = new SphereGeometry(2, 12, 12);
 
     const snowmaterial = new MeshPhongMaterial({
       map: this.snowtexture,
       displacementMap: this.snowdisp,
-      displacementScale: .5,
-      emissive: 0x222222
+      displacementScale: 0.5,
+      emissive: 0x222222,
     });
 
-    const group = new Group()
+    const group = new Group();
 
     const mesh = new Mesh(geometry, snowmaterial);
     mesh.position.set(0, 10, -35);
 
-
     group.add(mesh);
     this.mesh = group;
-    this.mesh.position.y = -2
-    this.mesh.rotation.y = -2.5
+    this.mesh.position.y = -2;
+    this.mesh.rotation.y = -2.5;
+    this.loadFont();
+  }
+
+  loadFont() {
+    const fontLoader = new FontLoader();
+    fontLoader.load("/website/fonts/mewafont.json", (font) => {
+      this.font = font;
+      this.createText();
+    });
+  }
+
+  createText() {
+    const matCapTexture = this.textureLoader.load("/website/textures/4.png");
+    matCapTexture.colorSpace = SRGBColorSpace;
+
+    const textMaterial = new MeshMatcapMaterial({
+      matcap: matCapTexture,
+    });
+
+    const geometryFirst = new TextGeometry(
+      `Pro`,
+      {
+        font: this.font,
+        size: .8,
+        depth: 0.2,
+        curveSegments: 3,
+        bevelEnabled: true,
+        bevelThickness: 0.03,
+        bevelSize: 0.02,
+        bevelOffset: 0,
+        bevelSegments: 5,
+      }
+    );
+    this.textMesh = new Mesh(geometryFirst, textMaterial);
+
+    this.textMesh.geometry.center();
+    this.textMesh.position.set(0, 7, -35);
+    this.mesh.add(this.textMesh);
   }
 
   initialRotate() {
-    this.mesh.rotation.y = (1 - 0.01) * this.mesh.rotation.y + 0.01 * this.pos.basicPos;
+    this.mesh.rotation.y =
+      (1 - 0.01) * this.mesh.rotation.y + 0.01 * this.pos.basicPos;
   }
   rotate() {
     const maxRotation = Math.PI * 2;
@@ -87,7 +130,7 @@ export class Planets {
       emissive: 0x000033,
     });
     this.mesh.children[0].scale.set(1.05, 1.05, 1.05);
-    this.mesh.children[0].material = material
+    this.mesh.children[0].material = material;
     //this.rotateAnim = true;
   }
   withdrawEmissive() {
@@ -99,20 +142,20 @@ export class Planets {
       emissive: 0x000000,
     });
     this.mesh.children[0].scale.set(1, 1, 1);
-    this.mesh.children[0].material = material
+    this.mesh.children[0].material = material;
     //this.rotateAnim = false;
   }
 
   handleStaticState() {
-    this.pos.static = true;
+    this.pos.static = !this.pos.static;
   }
 
   tick() {
     this.mesh.children[0].rotation.y += this.engine.delta;
-    if(this.pos.static) {
+    if (this.pos.static) {
       this.initialRotate();
     }
-    if(!this.pos.static) {
+    if (!this.pos.static) {
       this.rotate();
     }
   }

@@ -16,30 +16,49 @@ const worlds: Record<string, boolean> = {
   lavaPlanet: false,
   grassPlanet: false,
   planet: false,
-}
+};
+const selectedWorld = ref("");
+const displayInfos = ref(false);
 const displayWorlds = ref(false);
+const textToDisplay = ref("Continue");
 
 const newTextEvent = new CustomEvent("nextText", { detail: "nexttext" });
-const displayPlanetEvent = new CustomEvent("displayPlanets", { detail: "nexttext" });
+const displayPlanetEvent = new CustomEvent("displayPlanets", {
+  detail: "nexttext",
+});
 
 watch(displayWorlds, async (newQuestion, oldQuestion) => {
-  if (newQuestion === true) {
-    window.dispatchEvent(displayPlanetEvent)
-  }
-})
+  window.dispatchEvent(displayPlanetEvent);
+});
 
 export const useSettings = () => {
-  const manageSteps = () => {
-    if(currentStep.value < steps.length - 1) {
-      nextText()
+  const manageSteps = (infoState) => {
+    if (currentStep.value < steps.length - 1) {
+      nextText();
+      textToDisplay.value = "Continue";
     }
-    if(currentStep.value === steps.length - 1) {
+    if (
+      currentStep.value === steps.length - 2 ||
+      (currentStep.value === steps.length - 1 && displayWorlds.value)
+    ) {
+      textToDisplay.value = "Call the Planets";
+      displayInfos.value = false;
+      infoState.isBottom = false;
+    }
+    if (currentStep.value === steps.length - 1) {
+      textToDisplay.value = "Click on one Planet";
       handleDisplayWorlds();
     }
-    if(displayWorlds.value) {
-      console.log('suite');
+    if (currentStep.value === steps.length - 1 && !displayWorlds.value) {
+      textToDisplay.value = "Call the Planets";
+      displayInfos.value = false;
+      infoState.isBottom = false;
     }
-  }
+    if(currentStep.value === 3) {
+      displayInfos.value = false;
+      infoState.isBottom = false;
+    }
+  };
 
   const nextText = () => {
     window.dispatchEvent(newTextEvent);
@@ -51,7 +70,7 @@ export const useSettings = () => {
 
   const handleDisplayWorlds = () => {
     displayWorlds.value = !displayWorlds.value;
-  }
+  };
 
   return {
     steps,
@@ -60,9 +79,12 @@ export const useSettings = () => {
     isLoading,
     displayWorlds,
     worlds,
+    selectedWorld,
+    textToDisplay,
+    displayInfos,
     nextText,
     handleSummary,
     handleDisplayWorlds,
-    manageSteps
+    manageSteps,
   };
 };

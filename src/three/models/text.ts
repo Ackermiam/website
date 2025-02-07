@@ -32,7 +32,7 @@ export class Text {
     this.animation = {
       smaller: false,
       higher: true,
-      near: 0,
+      near: 0.3,
       far: -12,
     };
 
