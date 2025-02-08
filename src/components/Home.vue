@@ -1,14 +1,20 @@
 <template>
   <section class="Home">
     <div ref="div" class="Scene"></div>
-    <!--<div
-      class="PanelInfos"
-      :class="displayInfos ? 'PanelInfos--enter': 'PanelInfos--leave'"
-    ></div>-->
+
     <button class="ButtonContinue" @click="manageSteps(engine.cylinder.pos)">
       {{ textToDisplay }}
     </button>
-    <button style="display: none; position: absolute; z-index: 10" @click="() => {displayInfos = !displayInfos}">test</button>
+    <button
+      style="display: none; position: absolute; z-index: 10"
+      @click="
+        () => {
+          displayInfos = !displayInfos;
+        }
+      "
+    >
+      test
+    </button>
   </section>
 </template>
 
@@ -71,28 +77,6 @@ onMounted(() => {
   font-size: 1.3rem;
   cursor: pointer;
   white-space: nowrap;
-}
-
-.PanelInfos {
-  width: 75%;
-  height: 80%;
-  border-radius: 8px;
-  border: 5px solid rgba(0, 238, 255);
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  backdrop-filter: blur(10px);
-  z-index: -1;
-  filter: drop-shadow(0px 0px 8px rgba(0, 238, 255));
-}
-
-.PanelInfos--enter {
-  animation: panelEnter 2s ease forwards;
-  animation-delay: 1s;
-}
-
-.PanelInfos--leave {
-  animation: panelLeave 2s ease forwards;
 }
 
 @media screen and (max-width: 900px) {

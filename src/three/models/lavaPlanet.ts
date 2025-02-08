@@ -113,7 +113,7 @@ export class LavaPlanet {
   }
 
   initialRotate() {
-    this.mesh.rotation.y = (1 - 0.01) * this.mesh.rotation.y - 0.01 * this.pos.basicPos;
+    this.mesh.rotation.y = (1 - 0.03) * this.mesh.rotation.y - 0.03 * this.pos.basicPos;
   }
   rotate() {
     const maxRotation = Math.PI * 2;

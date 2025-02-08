@@ -117,30 +117,3 @@ body {
     opacity: 0;
   }
 }
-
-@keyframes panelEnter {
-  0%{
-    top: 150%;
-  }
-
-  90%{
-    top: 4%;
-  }
-
-  100% {
-    top: 7%;
-  }
-}
-@keyframes panelLeave {
-  0%{
-    top: 7%;
-  }
-
-  10% {
-    top: 4%;
-  }
-
-  100% {
-    top: 150%;
-  }
-}

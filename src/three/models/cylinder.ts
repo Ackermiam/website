@@ -46,23 +46,16 @@ export class Cylinder {
     this.texture.colorSpace = SRGBColorSpace;
     this.texture.wrapT = RepeatWrapping;
     this.texture.wrapS = RepeatWrapping;
-    this.texture.repeat = new Vector2(5, 1);
+    this.texture.repeat = new Vector2(this.engine.width < 900 ? 4 : 5, 1);
 
-    const geometry = new CylinderGeometry(7, 7, 3.5, 64,1,true);
+    const geometry = new CylinderGeometry(this.engine.width < 900 ? 4.5 : 7, this.engine.width < 900 ? 4.5 : 7, 3.5, 64,1,true);
     geometry.openEnded = true;
 
-    const edge = new CylinderGeometry(7.05, 7.05, 0.03, 64, 1, true);
+    const edge = new CylinderGeometry(this.engine.width < 900 ? 4.55 : 7.05, this.engine.width < 900 ? 4.55 : 7.05, 0.03, 64, 1, true);
     const material = new MeshPhongMaterial({
       map: this.texture,
       transparent: true,
-      specular: 0x00fbff,
-      alphaHash: true
-      //color: 0x00fbff,
-      /*transparent: true,
-      opacity: 0.035,
-      emissive: 0x00fbff,
-      specular: 0x00fbff,
-      alphaHash: true*/
+      specular: 0x00fbff
     });
 
     const edgematerial = new MeshPhongMaterial({
@@ -87,7 +80,6 @@ export class Cylinder {
     this.mesh.rotation.z = 0.1
     this.mesh.rotation.z = 0.1
     this.mesh.rotation.z = 0.1
-    console.log(this.mesh);
   }
 
   rotate() {
@@ -105,7 +97,7 @@ export class Cylinder {
     this.texture.colorSpace = SRGBColorSpace;
     this.texture.wrapT = RepeatWrapping;
     this.texture.wrapS = RepeatWrapping;
-    this.texture.repeat = new Vector2(5, 1);
+    this.texture.repeat = new Vector2(this.engine.width < 900 ? 4 : 5, 1);
 
     const cylinderMaterial = this.mesh.children[2].material;
     cylinderMaterial.map = this.texture;

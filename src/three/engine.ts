@@ -31,7 +31,14 @@ import { useSettings } from "../composable/settings";
 import Stats from "stats.js";
 import GUI from "lil-gui";
 
-const { worlds, displayWorlds, selectedWorld, displayInfos, textToDisplay, handleDisplayWorlds } = useSettings();
+const {
+  worlds,
+  displayWorlds,
+  selectedWorld,
+  displayInfos,
+  textToDisplay,
+  handleDisplayWorlds,
+} = useSettings();
 
 export class Engine {
   scene: Scene;
@@ -96,7 +103,7 @@ export class Engine {
     this.delta = 0;
     this.sensitivity = 0.002;
     this.mouseDirection = new Vector3(0, 0, 1);
-    this.pixelRatio = Math.min(window.devicePixelRatio, 2);
+    this.pixelRatio = Math.min(window.devicePixelRatio, window.innerWidth < 768 ? 1 : 2);
 
     this.renderer = new WebGLRenderer({
       antialias: true,
@@ -184,6 +191,7 @@ export class Engine {
     this.delta = this.clock.getDelta();
     this.elapsedTime = this.clock.getElapsedTime();
     this.checkFov();
+    this.intersects();
     this.tickChildren();
     //this.stats.end();
 
@@ -237,15 +245,9 @@ export class Engine {
       .add(this.environment?.mesh.children[0].material, "wireframe")
       .name("ground wireframe");*/
 
-    light
-      .add(this.light?.position, "x", -6, 50, 0.1)
-      .name("Xpos")
-    light
-      .add(this.light?.position, "y", -6, 50, 0.1)
-      .name("Ypos")
-    light
-      .add(this.light?.position, "z", -6, 50, 0.1)
-      .name("Zpos")
+    light.add(this.light?.position, "x", -6, 50, 0.1).name("Xpos");
+    light.add(this.light?.position, "y", -6, 50, 0.1).name("Ypos");
+    light.add(this.light?.position, "z", -6, 50, 0.1).name("Zpos");
 
     shaderPP
       .add(this.composer.passes[1], "strength", 0.1, 5)
@@ -298,7 +300,7 @@ export class Engine {
       this.composer.passes[3].uniforms.amount.value = 0.008;
       this.composer.passes[3].uniforms.angle.value = 1.8;
       setTimeout(() => {
-        this.globe.changeEmissive(0x3b002a);
+        this.globe.changeEmissive(0x404040);
       }, 200);
     }
     if (!this.fov.isAccelerate) {
@@ -323,95 +325,100 @@ export class Engine {
     this.renderer.setPixelRatio(this.pixelRatio);
   }
 
+  intersects() {
+    const rect = this.renderer.domElement.getBoundingClientRect();
+    const x = this.mousePos.x - rect.left;
+    const y = this.mousePos.y - rect.top;
+
+    const normalized = {
+      x: (x / rect.width) * 2 - 1,
+      y: -(y / rect.height) * 2 + 1,
+    };
+
+    this.raycaster.setFromCamera(normalized, this.camera);
+
+    const intersectsLava = this.raycaster.intersectObject(
+      this.lavaPlanet.mesh
+    );
+    const intersectsGrass = this.raycaster.intersectObject(
+      this.grassPlanet.mesh
+    );
+    const intersectsPlanet = this.raycaster.intersectObject(
+      this.planets.mesh
+    );
+
+    if (intersectsLava.length > 0) {
+      if (!worlds.lavaPlanet) {
+        this.lavaPlanet.changeEmissive();
+        worlds.lavaPlanet = true;
+        selectedWorld.value = "lava";
+      }
+    } else {
+      this.lavaPlanet.withdrawEmissive();
+      worlds.lavaPlanet = false;
+    }
+    if (intersectsGrass.length > 0) {
+      if (!worlds.grassPlanet) {
+        this.grassPlanet.changeEmissive();
+        worlds.grassPlanet = true;
+        selectedWorld.value = "grass";
+      }
+    } else {
+      this.grassPlanet.withdrawEmissive();
+      worlds.grassPlanet = false;
+    }
+    if (intersectsPlanet.length > 0) {
+      if (!worlds.planet) {
+        this.planets.changeEmissive();
+        worlds.planet = true;
+        selectedWorld.value = "snow";
+      }
+    } else {
+      this.planets.withdrawEmissive();
+      worlds.planet = false;
+    }
+  }
+
+  triggerClickPlanet(){
+    if (
+      displayWorlds.value &&
+      (worlds.planet || worlds.lavaPlanet || worlds.grassPlanet)
+    ) {
+      textToDisplay.value = "Call the Planets";
+      displayInfos.value = false;
+      this.cylinder.pos.isBottom = false;
+      this.cylinder.mesh.visible = false;
+      this.handleHyperspeed();
+
+      setTimeout(() => {
+        this.globe.changeSkin(selectedWorld.value);
+        this.cylinder.changeSkin(selectedWorld.value);
+      }, 1000);
+      handleDisplayWorlds();
+      setTimeout(() => {
+        this.handleHyperspeed();
+        displayInfos.value = true;
+        this.cylinder.pos.isBottom = true;
+        this.cylinder.mesh.visible = true;
+      }, 3000);
+    }
+  }
+
   registerEventListeners() {
     window.onresize = () => {
       this.setView();
     };
-    window.addEventListener("mousemove", (e) => {
+    window.addEventListener("pointermove", (e) => {
       this.mousePos = { x: e.clientX, y: e.clientY };
-      const rect = this.renderer.domElement.getBoundingClientRect();
-
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      const normalized = {
-        x: (x / rect.width) * 2 - 1,
-        y: -(y / rect.height) * 2 + 1,
-      };
-
-      this.raycaster.setFromCamera(normalized, this.camera);
-
-      const intersectsLava = this.raycaster.intersectObject(
-        this.lavaPlanet.mesh
-      );
-      const intersectsGrass = this.raycaster.intersectObject(
-        this.grassPlanet.mesh
-      );
-      const intersectsPlanet = this.raycaster.intersectObject(
-        this.planets.mesh
-      );
-
-      if (intersectsLava.length > 0) {
-        if (!worlds.lavaPlanet) {
-          this.lavaPlanet.changeEmissive();
-          worlds.lavaPlanet = true;
-          selectedWorld.value = "lava";
-        }
-      } else {
-        this.lavaPlanet.withdrawEmissive();
-        worlds.lavaPlanet = false;
-      }
-      if (intersectsGrass.length > 0) {
-        if (!worlds.grassPlanet) {
-          this.grassPlanet.changeEmissive();
-          worlds.grassPlanet = true;
-          selectedWorld.value = "grass";
-        }
-      } else {
-        this.grassPlanet.withdrawEmissive();
-        worlds.grassPlanet = false;
-      }
-      if (intersectsPlanet.length > 0) {
-        if (!worlds.planet) {
-          this.planets.changeEmissive();
-          worlds.planet = true;
-          selectedWorld.value = "snow";
-        }
-      } else {
-        this.planets.withdrawEmissive();
-        worlds.planet = false;
-      }
     });
-    window.addEventListener("click", () => {
-      if (
-        displayWorlds.value &&
-        (worlds.planet || worlds.lavaPlanet || worlds.grassPlanet)
-      ) {
-        textToDisplay.value = 'Call the Planets'
-        displayInfos.value = false;
-        this.cylinder.pos.isBottom = false;
-        this.cylinder.mesh.visible = false;
-        this.handleHyperspeed();
-
-        setTimeout(() => {
-          this.globe.changeSkin(selectedWorld.value)
-          this.cylinder.changeSkin(selectedWorld.value)
-        }, 1000);
-        handleDisplayWorlds();
-        setTimeout(() => {
-          this.handleHyperspeed();
-          displayInfos.value = true;
-          this.cylinder.pos.isBottom = true;
-          this.cylinder.mesh.visible = true;
-        }, 3000);
-      }
+    window.addEventListener("pointerdown", (e) => {
+      this.mousePos = { x: e.clientX, y: e.clientY };
+    });
+    window.addEventListener("pointerup", (e) => {
+      this.triggerClickPlanet();
     });
     window.addEventListener("scroll", () => {
       this.globe.rotateGlobe();
-    });
-    window.addEventListener("touchmove", (e) => {
-      this.mousePos.x = e.touches[0].clientX;
-      this.mousePos.y = e.touches[0].clientY;
     });
     window.addEventListener("nextText", () => {
       this.text.triggerNextStep();

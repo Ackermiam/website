@@ -53,8 +53,7 @@ export class Planets {
     const snowmaterial = new MeshPhongMaterial({
       map: this.snowtexture,
       displacementMap: this.snowdisp,
-      displacementScale: 0.5,
-      emissive: 0x222222,
+      displacementScale: 0.5
     });
 
     const group = new Group();
@@ -108,7 +107,7 @@ export class Planets {
 
   initialRotate() {
     this.mesh.rotation.y =
-      (1 - 0.01) * this.mesh.rotation.y + 0.01 * this.pos.basicPos;
+      (1 - 0.03) * this.mesh.rotation.y + 0.03 * this.pos.basicPos;
   }
   rotate() {
     const maxRotation = Math.PI * 2;

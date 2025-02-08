@@ -57,7 +57,7 @@ export class Globe {
       color: 0xffffff,
       map: this.texture,
       displacementMap: this.displacementTexture,
-      displacementScale: 1.5,
+      displacementScale: 1.2,
       emissive: 0x202020,
       specular: 0x004142,
     });

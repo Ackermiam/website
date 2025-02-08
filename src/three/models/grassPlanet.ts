@@ -108,7 +108,7 @@ export class GrassPlanet {
 
   initialRotate() {
     this.mesh.rotation.y =
-      (1 - 0.01) * this.mesh.rotation.y + 0.01 * this.pos.basicPos;
+      (1 - 0.03) * this.mesh.rotation.y + 0.03 * this.pos.basicPos;
   }
   rotate() {
     const maxRotation = Math.PI * 2;
@@ -135,7 +135,6 @@ export class GrassPlanet {
     });
     this.mesh.children[0].scale.set(1.05, 1.05, 1.05);
     this.mesh.children[0].material = material;
-    //this.rotateAnim = true;
   }
   withdrawEmissive() {
     const oldMaterial = this.mesh.children[0].material;
@@ -147,7 +146,6 @@ export class GrassPlanet {
     });
     this.mesh.children[0].scale.set(1, 1, 1);
     this.mesh.children[0].material = material;
-    //this.rotateAnim = false;
   }
 
   tick() {

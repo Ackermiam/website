@@ -33,7 +33,7 @@ export class Text {
       smaller: false,
       higher: true,
       near: 0.3,
-      far: -12,
+      far: -15,
     };
 
     this.engine = engine;
@@ -157,7 +157,7 @@ export class Text {
     if(currentStep.value < steps.length - 1) {
       setTimeout(() => {
         this.nextStep();
-      }, 1000);
+      }, 800);
     }
   }
 
@@ -169,12 +169,12 @@ export class Text {
   changeText() {
     if (this.animation.higher) {
       const size =
-        (1 - 0.02) * this.mesh.position.y + 0.02 * this.animation.near;
+        (1 - 0.05) * this.mesh.position.y + 0.05 * this.animation.near;
       this.mesh.position.y = size;
     }
     if (this.animation.smaller) {
       const size =
-        (1 - 0.02) * this.mesh.position.y + 0.02 * this.animation.far;
+        (1 - 0.05) * this.mesh.position.y + 0.05 * this.animation.far;
       this.mesh.position.y = size;
     }
   }

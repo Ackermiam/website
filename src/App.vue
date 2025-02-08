@@ -79,6 +79,7 @@ setTimeout(() => {
   font-size: 1.3rem;
   cursor: pointer;
   z-index: 4;
+  backdrop-filter: blur(20px);
 }
 
 .Hidder {
